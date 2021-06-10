@@ -80,26 +80,6 @@ func sendMetrics() (err error) {
 		return
 	}
 
-	// v := metricdata.AddMetricDataOpts{
-	// 	{
-	// 		Metric: metricdata.MetricInfo{
-	// 			Dimensions: []metricdata.MetricsDimension{
-	// 				{
-	// 					Name:  "instance_id",
-	// 					Value: "undefined",
-	// 				},
-	// 			},
-	// 			MetricName: "m2",
-	// 			Namespace:  "APP.nextcloud",
-	// 		},
-	// 		Ttl:         86400,
-	// 		CollectTime: 1623324473000,
-	// 		Value:       0.4,
-	// 		Unit:        "test",
-	// 		Type:        "float",
-	// 	},
-	// }
-
 	m := metricdata.AddMetricDataOpts(metrics)
 
 	log.Debug().Msgf("send metrics: %+v", m)
