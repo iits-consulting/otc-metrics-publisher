@@ -14,30 +14,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func metricsHandler() {
-	// go-routine with inifite loop to grab metrics
-	for {
-		// get list of files
-		// that allows to add and remove scripts ad-hoc without daemon restart
-		allFiles, err := ioutil.ReadDir(cfg.ScriptsDir)
-		if err == nil {
-			for _, file := range allFiles {
-				// if file is not dir, bigger than 0 and is executable
-				if file.IsDir() == false &&
-					file.Size() > 0 &&
-					file.Mode()&0111 == 0111 {
-					go scriptExec(file.Name())
-					time.Sleep(time.Millisecond * 10) // sleep 10ms before launching next script
-				}
-			}
-		} else {
-			log.Err(err).Msgf("cannot fetch list of scripts in %s directory", cfg.ScriptsDir)
-		}
-
-		time.Sleep(time.Second * time.Duration(cfg.GrabInterval))
-	}
-}
-
 func grabMetrics() {
 	// get list of files
 	allFiles, err := ioutil.ReadDir(cfg.ScriptsDir)

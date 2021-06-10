@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
 	"os"
 	"sync"
 	"time"
@@ -9,10 +10,6 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/opentelekomcloud/gophertelekomcloud/openstack/ces/v1/metricdata"
 	"github.com/rs/zerolog/log"
-)
-
-const (
-	envVarPrefix = "metrics"
 )
 
 var (
@@ -52,12 +49,33 @@ func main() {
 		os.Exit(1)
 	}
 
-	// start basic cloud eye exporter
-	go metricsHandler()
+	// start goroutine to grab metrics
+	go func() {
+		for {
+			// get list of files
+			// that allows to add and remove scripts ad-hoc without daemon restart
+			allFiles, err := ioutil.ReadDir(cfg.ScriptsDir)
+			if err == nil {
+				for _, file := range allFiles {
+					// if file is not dir, bigger than 0 and is executable
+					if file.IsDir() == false &&
+						file.Size() > 0 &&
+						file.Mode()&0111 == 0111 {
+						go scriptExec(file.Name())
+						time.Sleep(time.Millisecond * 10) // sleep 10ms before launching next script
+					}
+				}
+			} else {
+				log.Err(err).Msgf("cannot fetch list of scripts in %s directory", cfg.ScriptsDir)
+			}
 
-	// endless
+			time.Sleep(time.Second * time.Duration(cfg.GrabInterval))
+
+		}
+	}()
+
+	// endless loop to send and clean the metrics up
 	for {
-		// sleep
 		time.Sleep(time.Second * time.Duration(cfg.SendInterval))
 
 		// regullary send metrics

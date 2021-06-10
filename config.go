@@ -8,22 +8,25 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const (
+	envVarPrefix = "metrics"
+)
+
 type config struct {
 	// cloud endpoint settings
-	// Endpoint  string `default:""`
 	AuthEndpoint string `default:"https://iam.eu-de.otc.t-systems.com/v3"`
 	ProjectID    string `default:"" split_words:"true"`
 	// TrustSSL  bool   `default:"true"`
 
 	// auth
-	AuthMethod string `default:"aksk"`
 	AccessKey  string `default:"" split_words:"true"`
 	SecretKey  string `default:"" split_words:"true"`
 	User       string `default:""`
 	Password   string `default:""`
+	AuthMethod string `default:"aksk" split_words:"true"`
 
 	// metrics settings
-	NameSpace               string `default:"APP.nextcloud"`
+	NameSpace               string `default:"APP.node"`
 	SendInterval            int    `default:"60" split_words:"true"`
 	GrabInterval            int    `default:"10" split_words:"true"`
 	ScriptsDir              string `default:"/opt/metric-scripts" split_words:"true"`
@@ -66,13 +69,17 @@ func configHandler() (err error) {
 	}
 
 	// check NameSpace (PREFIX.name)
-	ns := strings.Split(cfg.NameSpace, ".")
-	if len(ns) != 2 {
-		err = errors.New("wrong namespace format '" + cfg.NameSpace + "': The value must be in the service.item format and can contain 3 to 32 characters. service and item must be a string that starts with a letter and contains only uppercase letters, lowercase letters, digits, and underscores (_). In addition, service cannot start with SYS and AGT.")
+	nameSpaceWords := strings.Split(cfg.NameSpace, ".")
+	if len(nameSpaceWords) != 2 {
+		err = errors.New("wrong namespace format '" + cfg.NameSpace +
+			"': The value must be in the service.item format and can contain 3 to 32 characters." +
+			" service and item must be a string that starts with a letter and containameSpaceWords" +
+			" only uppercase letters, lowercase letters, digits, and underscores (_)." +
+			" In addition, service cannot start with SYS and AGT.")
 		return
 	}
-	if strings.EqualFold(ns[0], "SYS") == true ||
-		strings.EqualFold(ns[0], "AGT") {
+	if strings.EqualFold(nameSpaceWords[0], "SYS") == true ||
+		strings.EqualFold(nameSpaceWords[0], "AGT") == true {
 		err = errors.New("service cannot start with SYS and AGT")
 		return
 	}
