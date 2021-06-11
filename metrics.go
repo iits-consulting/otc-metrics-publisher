@@ -1,10 +1,7 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"time"
 
 	golangsdk "github.com/opentelekomcloud/gophertelekomcloud"
@@ -14,32 +11,11 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func grabMetrics() {
-	// get list of files
-	allFiles, err := ioutil.ReadDir(cfg.ScriptsDir)
-	if err != nil {
-		log.Err(err).Msgf("cannot fetch list of scripts in %s directory", cfg.ScriptsDir)
-	} else {
-		for _, file := range allFiles {
-			// if file is not dir, bigger than 0 and is executable
-			if file.IsDir() == false &&
-				file.Size() > 0 &&
-				file.Mode()&0111 == 0111 {
-				go scriptExec(file.Name())
-				time.Sleep(time.Millisecond * 10) // sleep 10ms before launching next script
-			}
-		}
-	}
-}
-
 func sendMetrics() (err error) {
 	if len(metrics) == 0 {
 		err = errors.New("metrics list is empty")
 		return
 	}
-
-	payloadBuf := new(bytes.Buffer)
-	json.NewEncoder(payloadBuf).Encode(metrics)
 
 	opts := golangsdk.AKSKAuthOptions{
 		IdentityEndpoint: cfg.AuthEndpoint,
