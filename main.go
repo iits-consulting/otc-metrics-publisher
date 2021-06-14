@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/fs"
 	"io/ioutil"
 	"os"
@@ -18,21 +19,33 @@ var (
 	metrics  []metricdata.AddMetricDataItem
 	lastSend time.Time
 	mutex    = &sync.Mutex{}
+
+	// parameters set by CI pipeline
+	version = ""
+	date    = ""
+	commit  = ""
 )
 
 func main() {
-	var err error
+	// command line options
+	debug := flag.Bool("debug", false, "debug mode")
+	trace := flag.Bool("trace", false, "trace mode")
+	v := flag.Bool("version", false, "print version")
+	flag.Parse()
 
-	err = envconfig.Process(envVarPrefix, &cfg)
+	if *v == true {
+		// version request
+		fmt.Printf("version: %s, commit: %s, date: %s\n", version, commit, date)
+		os.Exit(0)
+	}
+
+	err := envconfig.Process(envVarPrefix, &cfg)
 	if err != nil {
 		log.Err(err).Msg("error reading config values")
 		os.Exit(1)
 	}
 
-	// debug mode from commad line
-	debug := flag.Bool("debug", false, "debug mode")
-	trace := flag.Bool("trace", false, "trace mode")
-	flag.Parse()
+	// overwrite log level
 	if *debug == true {
 		cfg.LogLevel = "debug"
 	}
