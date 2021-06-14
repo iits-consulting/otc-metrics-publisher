@@ -27,8 +27,10 @@ type config struct {
 
 	// metrics settings
 	NameSpace               string `default:"APP.node"`
+	RefreshScriptsList      bool   `default:"false" split_words:"true"` // read list of scripts in dir only on boot, or recreate the list on every iteration
 	SendInterval            int    `default:"60" split_words:"true"`
 	GrabInterval            int    `default:"10" split_words:"true"`
+	ScriptExecTimeout       int    `default:"5" split_words:"true"`
 	ScriptsDir              string `default:"/opt/metric-scripts" split_words:"true"`
 	InstanceID              string `default:"" split_words:"true"`
 	FileCloudInitInstanceID string `default:"/run/cloud-init/.instance-id" split_words:"true"` // we can read instance ID from that file (if not defined)

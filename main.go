@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"sync"
@@ -51,12 +52,27 @@ func main() {
 
 	// start goroutine to grab metrics
 	go func() {
+		var listOfScripts []fs.FileInfo
+		var err error
+
+		// get list of files
+		// that will generate non-changeble list of scrpts on the start
+		if cfg.RefreshScriptsList == false {
+			listOfScripts, err = ioutil.ReadDir(cfg.ScriptsDir)
+			if err != nil {
+
+			}
+		}
+
 		for {
 			// get list of files
 			// that allows to add and remove scripts ad-hoc without daemon restart
-			allFiles, err := ioutil.ReadDir(cfg.ScriptsDir)
+			if cfg.RefreshScriptsList == true {
+				listOfScripts, err = ioutil.ReadDir(cfg.ScriptsDir)
+			}
+
 			if err == nil {
-				for _, file := range allFiles {
+				for _, file := range listOfScripts {
 					// if file is not dir, bigger than 0 and is executable
 					if file.IsDir() == false &&
 						file.Size() > 0 &&

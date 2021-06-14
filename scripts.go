@@ -2,31 +2,54 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"errors"
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/opentelekomcloud/gophertelekomcloud/openstack/ces/v1/metricdata"
 	"github.com/rs/zerolog/log"
 )
 
 func scriptExec(script string) {
-	// TODO: exec timeout: https://medium.com/@vCabbage/go-timeout-commands-with-os-exec-commandcontext-ba0c861ed738
-	output, err := exec.Command(cfg.ScriptsDir + "/" + script).Output()
+	// exec timeout: https://medium.com/@vCabbage/go-timeout-commands-with-os-exec-commandcontext-ba0c861ed738
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.ScriptExecTimeout)*time.Second)
+	defer cancel() // The cancel should be deferred so resources are cleaned up
+
+	// Create the command with our context
+	cmd := exec.CommandContext(ctx, cfg.ScriptsDir+"/"+script)
+
+	// This time we can simply use Output() to get the result.
+	output, err := cmd.Output()
 	log.Trace().Msgf("exec file: %s, output: %#v", script, string(output))
+
+	// We want to check the context error to see if the timeout was executed.
+	// The error returned by cmd.Output() will be OS specific based on what
+	// happens when a process is killed.
+	if ctx.Err() == context.DeadlineExceeded {
+		log.Err(context.DeadlineExceeded).Msgf("Script timed out: %s", script)
+		return
+	}
+
 	if err != nil {
 		log.Err(err).Msgf("error running script %s", script)
+		return
 	}
-	m, err := scriptParseOutput(string(output))
+
+	// parse output to metrics structure
+	m, errParseOut := scriptParseOutput(string(output))
 	log.Trace().Msgf("parsed metric object: %#v", m)
-	if err == nil {
+
+	if errParseOut == nil {
 		mutex.Lock()
 		metrics = append(metrics, m)
 		mutex.Unlock()
 	} else {
-		log.Err(err).Msg("parsing output error")
+		log.Err(errParseOut).Msg("parsing output error")
+		return
 	}
 }
 

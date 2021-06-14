@@ -14,8 +14,10 @@ The simple daemon runs scripts from the specific folder, parse output, convert i
 |METRICS_PASSWORD|""|not implemented|
 |METRICS_AUTH_METHOD|"aksk"|Only implemented auth method is AK/SK|
 |METRICS_NAMESPACE|APP.node|[otc docs](https://docs.otc.t-systems.com/api/ces/en-us_topic_0171212508.html#EN-US_TOPIC_0171212508__en-us_topic_0022067719_section24282572112133)|
+|METRICS_REFRESH_SCRIPTS_LIST|false|Update scripts list on each iteration. For security reasons default value is FALSE|
 |METRICS_SEND_INTERVAL|60||
 |METRICS_GRAB_INTERVAL|10||
+|METRICS_SCRIPT_EXEC_TIMEOUT|5||
 |METRICS_SCRIPTS_DIR|/opt/metric-scripts|Every *executable* script in diretory will be launched|
 |METRICS_INSTANCE_ID|"undefined"||
 |METRICS_FILE_CLOUD_INIT_INSTANCE_ID STRING |/run/cloud-init/.instance-id|we can read instance id from that file (if not defined)|
